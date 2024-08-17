@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/gorilla/mux"
 )
 
 var ( // shared resource
@@ -46,7 +48,7 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/** header is more for information about the client/request, might delete later*/
+/** header is more for information about the client/request, might delete later */
 func header(w http.ResponseWriter, r *http.Request) {
 	// define header function
 
@@ -66,7 +68,7 @@ func RequestInformation(w http.ResponseWriter, r *http.Request) {
 			// get platform info
 			if strings.Contains(name, "Sec-Ch-Ua-Platform") {
 				h = strings.Trim(h, "")
-				fmt.Fprintf(w, "Clinet running on a "+h+" platform \n")
+				fmt.Fprintf(w, "Client running on a "+h+" platform \n")
 			}
 			if strings.Contains(name, "Sec-Ch-Ua-Mobile") {
 				if h != "?0" {
@@ -104,12 +106,15 @@ func GeneralInformation(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", HomePage)
-	http.HandleFunc("/header", header)
-	http.HandleFunc("/ClientInfo", RequestInformation)
-	http.HandleFunc("/info", GeneralInformation)
+	r := mux.NewRouter()
+
+	// Register routes
+	r.HandleFunc("/", HomePage)
+	r.HandleFunc("/header", header)
+	r.HandleFunc("/ClientInfo", RequestInformation)
+	r.HandleFunc("/info", GeneralInformation)
 
 	port := "8080"
 	fmt.Printf("Server starting on port %s...\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, r)) // Use the router here
 }
