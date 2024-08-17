@@ -5,13 +5,25 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+	"sync"
+)
+
+var ( // shared resource
+	counter int
+	mu      sync.Mutex
+	// Semaphore with a capacity of 5 for accesses
+	semaphore = make(chan struct{}, 5)
 )
 
 /** HomePage creates the landing page which is first seen when logging onto server  */
 
 func HomePage(w http.ResponseWriter, r *http.Request) {
 	// define home page
+
+	// Acquire semaphore slot
+	semaphore <- struct{}{}
 
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -21,7 +33,17 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
-	fmt.Fprintf(w, "Hello, World!")
+
+	// Lock and update shared resource
+	mu.Lock()
+	counter++
+	currentCount := counter
+	mu.Unlock()
+	fmt.Fprintf(w, "Hello, World!\n")
+	fmt.Fprintf(w, "This page has been accessed "+strconv.Itoa(currentCount)+" times!")
+
+	defer func() { <-semaphore }() // Release semaphore slot
+
 }
 
 /** header is more for information about the client/request, might delete later*/
