@@ -60,6 +60,32 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+
+	id := mux.Vars(r)["id"]
+	user, exists := users[id]
+	if !exists {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	var updatedUser User
+	if err := json.NewDecoder(r.Body).Decode(&updatedUser); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Update the user in the map
+	user.Name = updatedUser.Name
+	users[id] = user
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
+	mu.Unlock()
+
+}
+
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
 
