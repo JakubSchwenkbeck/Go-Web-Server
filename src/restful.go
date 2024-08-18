@@ -101,10 +101,10 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 
 }
-
 func RegisterRoutes(r *mux.Router) {
-	r.HandleFunc("/users", GetUsers).Methods("GET")
-	r.HandleFunc("/users", CreateUser).Methods("POST")
-	r.HandleFunc("/users/{id:[0-9]+}", GetUser).Methods("GET")
-	r.HandleFunc("/users/{id:[0-9]+}", DeleteUser).Methods("DELETE")
+	r.HandleFunc("/users", GetUsers).Methods("GET")            // accessible by all
+	r.HandleFunc("/users/{id:[0-9]+}", GetUser).Methods("GET") // accessible by all
+
+	r.Handle("/users", IsAdmin(http.HandlerFunc(CreateUser))).Methods("POST")               // admin only
+	r.Handle("/users/{id:[0-9]+}", IsAdmin(http.HandlerFunc(DeleteUser))).Methods("DELETE") // admin only
 }
