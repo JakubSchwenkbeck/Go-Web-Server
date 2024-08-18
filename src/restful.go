@@ -22,15 +22,15 @@ var (
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
-	defer mu.Unlock()
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(users)
+	defer mu.Unlock()
+
 }
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
-	defer mu.Unlock()
 
 	var user User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
@@ -40,11 +40,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	users[user.ID] = user
 	w.WriteHeader(http.StatusCreated)
+	defer mu.Unlock()
+
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
-	defer mu.Unlock()
 
 	id := mux.Vars(r)["id"]
 	user, exists := users[id]
@@ -55,11 +56,12 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
+	defer mu.Unlock()
+
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
-	defer mu.Unlock()
 
 	id := mux.Vars(r)["id"]
 	if _, exists := users[id]; !exists {
@@ -69,6 +71,8 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	delete(users, id)
 	w.WriteHeader(http.StatusNoContent)
+	defer mu.Unlock()
+
 }
 
 func RegisterRoutes(r *mux.Router) {
