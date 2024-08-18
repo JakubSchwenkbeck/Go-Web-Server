@@ -114,6 +114,9 @@ func main() {
 	r.HandleFunc("/ClientInfo", RequestInformation)
 	r.HandleFunc("/info", GeneralInformation)
 
+	// Register routes from restful.go
+	RegisterRoutes(r)
+
 	port := "8080"
 	fmt.Printf("Server starting on port %s...\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, r)) // Use the router here
