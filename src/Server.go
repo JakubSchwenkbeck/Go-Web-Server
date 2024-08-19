@@ -8,7 +8,9 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )
 
@@ -119,5 +121,24 @@ func main() {
 
 	port := "8080"
 	fmt.Printf("Server starting on port %s...\n", port)
+
+	username := "Jakub"
+	role := "admin"
+	expirationTime := time.Now().Add(time.Hour * 24)
+
+	claims := &Claims{
+		Username: username,
+		Role:     role,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, _ := token.SignedString(jwtKey)
+
+	fmt.Print(tokenString)
+
 	log.Fatal(http.ListenAndServe(":"+port, r)) // Use the router here
+
 }
