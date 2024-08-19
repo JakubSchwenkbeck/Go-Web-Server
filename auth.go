@@ -1,61 +1,40 @@
 package main
 
-import (
-	"net/http"
-	"time"
+import "golang.org/x/crypto/bcrypt"
 
-	"github.com/dgrijalva/jwt-go"
-)
-
-var jwtKey = []byte("your_secret_key") // This should be a secret key, stored securely.
-
-func IsAdmin(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get("Authorization")
-		if tokenString == "" {
-			http.Error(w, "Authorization header missing", http.StatusUnauthorized)
-			return
-		}
-
-		claims := &Claims{}
-		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
-		})
-
-		if err != nil || !token.Valid {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
-		if claims.Role != "admin" {
-			http.Error(w, "Forbidden: Admins only", http.StatusForbidden)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-func GenerateJWT(username, role string) (string, error) {
-	expirationTime := time.Now().Add(time.Hour * 24)
-	claims := &Claims{
-		Username: username,
-		Role:     role,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
+func HashPassword(password string) (string, error) {
+	// Generate a bcrypt hash of the password
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
 	}
-
-	return tokenString, nil
+	return string(hash), nil
 }
 
-type Claims struct {
-	Username string `json:"username"`
-	Role     string `json:"role"`
-	jwt.StandardClaims
+func Login(cs ChatService, username string, password string) {
+	cs.mu.Lock()
+	id, found := findValueInMap(cs.users, username)
+	if found { // if user exists
+
+		if(password == cs.users[id].Password){// if passwords match
+
+			// login
+
+			
+		}
+
+
+
+	}
+
+	cs.mu.Unlock()
+
+}
+func findValueInMap(m map[string]ChatUser, targetValue string) (string, bool) {
+	for key, value := range m {
+		if value.InternData.Name == targetValue {
+			return key, true // Return the key and a boolean indicating the value was found
+		}
+	}
+	return "", false // Return an empty string and false if the value is not found
 }
