@@ -16,14 +16,11 @@ func Login(cs ChatService, username string, password string) {
 	id, found := findValueInMap(cs.users, username)
 	if found { // if user exists
 
-		if(password == cs.users[id].Password){// if passwords match
+		if password == cs.users[id].Password { // if passwords match
 
 			// login
 
-			
 		}
-
-
 
 	}
 
