@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -39,6 +38,7 @@ func (cs *ChatService) RegisterUser(id, name, password string) {
 
 		Password: password,
 	}
+	fmt.Print("Successfully Registered " + name + " \n")
 }
 
 // SendMessage sends a message from one user to another
@@ -102,19 +102,17 @@ func (cs *ChatService) GetMessagesHandler(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(messages)
 }
 
-func ChataPPmain() {
+func ChatAppMain(r mux.Router, port string) {
 	chatService := NewChatService()
-	r := mux.NewRouter()
-
 	// Register routes for the chat functionality
 	r.HandleFunc("/messages", chatService.SendMessageHandler).Methods("POST")
 	r.HandleFunc("/messages/{id}", chatService.GetMessagesHandler).Methods("GET")
 
 	// Example: Register some users
 	chatService.RegisterUser("1", "Jakub", "password123")
-	chatService.RegisterUser("2", "Alice", "password456")
+	chatService.RegisterUser("2", "Marie", "password456")
 
-	port := "8080"
-	fmt.Printf("Server starting on port %s...\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, r))
+	chatService.SendMessage("1", "2", "Hello there!")
+
+	//log.Fatal(http.ListenAndServe(":"+port, r))
 }
