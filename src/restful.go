@@ -7,12 +7,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Defining JSON User strcuture with id and name
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
 var (
 	users = make(map[string]User) // map for users
 

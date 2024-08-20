@@ -1,6 +1,10 @@
 package main
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 func HashPassword(password string) (string, error) {
 	// Generate a bcrypt hash of the password
@@ -19,6 +23,7 @@ func Login(cs ChatService, username string, password string) {
 		if password == cs.users[id].Password { // if passwords match
 
 			// login
+			fmt.Print("You now are Logged in as {}")
 
 		}
 
