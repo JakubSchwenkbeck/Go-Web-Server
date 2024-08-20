@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -19,34 +18,7 @@ var ( // shared resource
 	semaphore = make(chan struct{}, 5)
 )
 
-/** HomePage creates the landing page which is first seen when logging onto server  */
-
-func HomePage(w http.ResponseWriter, r *http.Request) {
-	// define home page
-
-	// Acquire semaphore slot
-	semaphore <- struct{}{}
-
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-	if r.Method != http.MethodGet {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Lock and update shared resource
-	mu.Lock()
-	counter++
-	currentCount := counter
-	mu.Unlock()
-	fmt.Fprintf(w, "Hello, World!\n")
-	fmt.Fprintf(w, "This page has been accessed "+strconv.Itoa(currentCount)+" times!")
-
-	defer func() { <-semaphore }() // Release semaphore slot
-
-}
+// PAGES ARE DECLARED IN pages.go
 
 /** header is more for information about the client/request, might delete later */
 func header(w http.ResponseWriter, r *http.Request) {
@@ -113,6 +85,12 @@ func main() {
 	r.HandleFunc("/header", header)
 	r.HandleFunc("/ClientInfo", RequestInformation)
 	r.HandleFunc("/info", GeneralInformation)
+	r.HandleFunc("/register", RegisterPage)
+	r.HandleFunc("/register", RegisterUser).Methods("POST")
+	r.HandleFunc("/login", LoginPage)
+	r.HandleFunc("/login", LoginUser).Methods("POST")
+	r.HandleFunc("/send", SendMessagePage)
+	r.HandleFunc("/send", SendMessage).Methods("POST")
 
 	// Register routes from restful.go
 	RegisterRoutes(r)
