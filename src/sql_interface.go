@@ -23,3 +23,21 @@ func InitDB(dataSourceName string) {
 	}
 	fmt.Println("Connected to the database!")
 }
+
+func connectDB() {
+
+	// Connection string: username:password@tcp(127.0.0.1:3306)/dbname
+	db, err := sql.Open("mysql", getDBString())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	// Test the connection
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Successfully connected to MySQL database!")
+}
