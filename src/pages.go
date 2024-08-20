@@ -47,48 +47,55 @@ func RenderHTML(w http.ResponseWriter, r *http.Request, tmpl string) {
 
 // RegisterPage serves the user registration page
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
-	form := `
-	<!DOCTYPE html>
-	<html>
-	<head>
-		<title>Register</title>
-	</head>
-	<body>
-		<h1>Register</h1>
-		<form action="/register" method="post">
-			<label for="id">ID:</label>
-			<input type="text" id="id" name="id" required><br><br>
-			<label for="name">Name:</label>
-			<input type="text" id="name" name="name" required><br><br>
-			<label for="password">Password:</label>
-			<input type="password" id="password" name="password" required><br><br>
-			<input type="submit" value="Register">
-		</form>
-	</body>
-	</html>`
-	RenderHTML(w, r, form)
+	if r.Method == http.MethodGet {
+		form := `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Register</title>
+        </head>
+        <body>
+            <h1>Register</h1>
+            <form action="/restful/register" method="post">
+                <label for="id">ID:</label>
+                <input type="text" id="id" name="id" required><br><br>
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required><br><br>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required><br><br>
+                <input type="submit" value="Register">
+            </form>
+        </body>
+        </html>`
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, form)
+	} else {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	}
 }
 
+// RegisterUser handles form submission for user registration
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method == http.MethodPost {
+		id := r.FormValue("id")
+		name := r.FormValue("name")
+		password, err := HashPassword(r.FormValue("password"))
+		if err != nil {
+			http.Error(w, "Error hashing password", http.StatusInternalServerError)
+			return
+		}
+
+		_, err = db.Exec("INSERT INTO users (id, name, password) VALUES (?, ?, ?)", id, name, password)
+		if err != nil {
+			http.Error(w, "Error registering user", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Fprintf(w, "User %s registered successfully!", name)
+	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-		return
 	}
-	id := r.FormValue("id")
-	name := r.FormValue("name")
-	password, err := HashPassword(r.FormValue("password"))
-	if err != nil {
-		http.Error(w, "Error hashing password", http.StatusInternalServerError)
-		return
-	}
-
-	_, err = db.Exec("INSERT INTO users (id, name, password) VALUES (?, ?, ?)", id, name, password)
-	if err != nil {
-		http.Error(w, "Error registering user", http.StatusInternalServerError)
-		return
-	}
-
-	fmt.Fprintf(w, "User %s registered successfully!", name)
+	http.Redirect(w, r, "/register", http.StatusSeeOther)
 }
 
 // LoginPage serves the user login page
@@ -101,7 +108,7 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 	</head>
 	<body>
 		<h1>Login</h1>
-		<form action="/login" method="post">
+		<form action="/restful/login" method="post">
 			<label for="username">Username:</label>
 			<input type="text" id="username" name="username" required><br><br>
 			<label for="password">Password:</label>
@@ -136,6 +143,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	token, _ := HashPassword(password)
 	fmt.Fprintf(w, "Login successful! Your token is: %s", token)
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 // SendMessagePage serves the send message form
@@ -148,7 +156,7 @@ func SendMessagePage(w http.ResponseWriter, r *http.Request) {
 	</head>
 	<body>
 		<h1>Send Message</h1>
-		<form action="/send" method="post">
+		<form action="/restful/send" method="post">
 			<label for="senderID">Sender ID:</label>
 			<input type="text" id="senderID" name="senderID" required><br><br>
 			<label for="receiverID">Receiver ID:</label>
@@ -180,4 +188,5 @@ func SendMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintf(w, "Message sent from %s to %s", senderID, receiverID)
+	http.Redirect(w, r, "/send", http.StatusSeeOther)
 }
