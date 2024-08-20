@@ -86,11 +86,11 @@ func main() {
 	r.HandleFunc("/ClientInfo", RequestInformation)
 	r.HandleFunc("/info", GeneralInformation)
 	r.HandleFunc("/register", RegisterPage)
-	r.HandleFunc("/register", RegisterUser).Methods("POST")
+	r.HandleFunc("/restful/register", RegisterUser).Methods("POST")
 	r.HandleFunc("/login", LoginPage)
-	r.HandleFunc("/login", LoginUser).Methods("POST")
+	r.HandleFunc("/restful/login", LoginUser).Methods("POST")
 	r.HandleFunc("/send", SendMessagePage)
-	r.HandleFunc("/send", SendMessage).Methods("POST")
+	r.HandleFunc("/restful/send", SendMessage).Methods("POST")
 
 	// Register routes from restful.go
 	RegisterRoutes(r)
