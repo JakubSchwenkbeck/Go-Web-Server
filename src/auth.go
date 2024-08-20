@@ -6,45 +6,44 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// HashPassword hashes the given password using bcrypt and returns the hash as a string.
+// Returns an error if hashing fails.
 func HashPassword(password string) (string, error) {
-	// Generate a bcrypt hash of the password
+	// Hash the password with bcrypt
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", err
+		return "", err // Return error if hashing fails
 	}
-	return string(hash), nil
+	return string(hash), nil // Return the hashed password
 }
 
+// Login authenticates a user by username and password.
+// If successful, returns a hashed token; otherwise, returns "invalid".
 func Login(cs ChatService, username string, password string) string {
 	cs.mu.Lock()
+	defer cs.mu.Unlock()
+
 	id, found := findValueInMap(cs.users, username)
 	var token = "invalid"
-	if found { // if user exists
-
-		if password == cs.users[id].Password { // if passwords match
-
-			// login
-			fmt.Print("You now are Logged in as " + username)
-			token, _ = HashPassword(password)
-		} else {
-			fmt.Print("Login to " + username + " was not successfull!")
-
-		}
-
+	if found && password == cs.users[id].Password {
+		// Successful login
+		fmt.Print("Logged in as " + username)
+		token, _ = HashPassword(password) // Create token
 	} else {
-		fmt.Print("User " + username + " does not exist yet. Please register are try with another name!")
-
+		// Login failed
+		fmt.Print("Login failed for " + username)
 	}
 
-	cs.mu.Unlock()
 	return token
-
 }
+
+// findValueInMap looks for a user with a specific name in the map.
+// Returns the user ID and a boolean indicating if found.
 func findValueInMap(m map[string]ChatUser, targetValue string) (string, bool) {
 	for key, value := range m {
 		if value.InternData.Name == targetValue {
-			return key, true // Return the key and a boolean indicating the value was found
+			return key, true // User found
 		}
 	}
-	return "", false // Return an empty string and false if the value is not found
+	return "", false // User not found
 }
