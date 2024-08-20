@@ -15,21 +15,29 @@ func HashPassword(password string) (string, error) {
 	return string(hash), nil
 }
 
-func Login(cs ChatService, username string, password string) {
+func Login(cs ChatService, username string, password string) string {
 	cs.mu.Lock()
 	id, found := findValueInMap(cs.users, username)
+	var token = "invalid"
 	if found { // if user exists
 
 		if password == cs.users[id].Password { // if passwords match
 
 			// login
-			fmt.Print("You now are Logged in as {}")
+			fmt.Print("You now are Logged in as " + username)
+			token, _ = HashPassword(password)
+		} else {
+			fmt.Print("Login to " + username + " was not successfull!")
 
 		}
+
+	} else {
+		fmt.Print("User " + username + " does not exist yet. Please register are try with another name!")
 
 	}
 
 	cs.mu.Unlock()
+	return token
 
 }
 func findValueInMap(m map[string]ChatUser, targetValue string) (string, bool) {
