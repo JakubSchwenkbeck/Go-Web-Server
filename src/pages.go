@@ -5,6 +5,9 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // HomePage serves the landing page of the server
@@ -66,7 +69,6 @@ func RegisterPage(w http.ResponseWriter, r *http.Request) {
 	RenderHTML(w, r, form)
 }
 
-// RegisterUser handles user registration
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -74,11 +76,18 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 	id := r.FormValue("id")
 	name := r.FormValue("name")
-	password := r.FormValue("password")
+	password, err := HashPassword(r.FormValue("password"))
+	if err != nil {
+		http.Error(w, "Error hashing password", http.StatusInternalServerError)
+		return
+	}
 
-	// Register user using the chat service
-	chatService := NewChatService()
-	chatService.RegisterUser(id, name, password)
+	_, err = db.Exec("INSERT INTO users (id, name, password) VALUES (?, ?, ?)", id, name, password)
+	if err != nil {
+		http.Error(w, "Error registering user", http.StatusInternalServerError)
+		return
+	}
+
 	fmt.Fprintf(w, "User %s registered successfully!", name)
 }
 
@@ -113,13 +122,19 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	// Authenticate user
-	chatService := NewChatService()
-	token := Login(*chatService, username, password)
-	if token == "invalid" {
+	var storedPassword string
+	err := db.QueryRow("SELECT password FROM users WHERE name = ?", username).Scan(&storedPassword)
+	if err != nil {
 		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(password)); err != nil {
+		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+		return
+	}
+
+	token, _ := HashPassword(password)
 	fmt.Fprintf(w, "Login successful! Your token is: %s", token)
 }
 
@@ -157,8 +172,12 @@ func SendMessage(w http.ResponseWriter, r *http.Request) {
 	receiverID := r.FormValue("receiverID")
 	message := r.FormValue("message")
 
-	// Send message using the chat service
-	chatService := NewChatService()
-	chatService.SendMessage(senderID, receiverID, message)
+	_, err := db.Exec("INSERT INTO messages (sender_id, receiver_id, message, timestamp) VALUES (?, ?, ?, ?)",
+		senderID, receiverID, message, time.Now())
+	if err != nil {
+		http.Error(w, "Error sending message", http.StatusInternalServerError)
+		return
+	}
+
 	fmt.Fprintf(w, "Message sent from %s to %s", senderID, receiverID)
 }
