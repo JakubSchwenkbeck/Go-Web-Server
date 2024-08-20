@@ -11,27 +11,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Message structure to represent a chat message
-type Message struct {
-	SenderID   string    `json:"sender_id"`
-	ReceiverID string    `json:"receiver_id"`
-	Message    string    `json:"message"`
-	TimeStamp  time.Time `json:"timestamp"`
-}
-
-// ChatUser represents a user in the chat application
-type ChatUser struct {
-	InternData  User   // Internal user data
-	DisplayName string `json:"display_name"`
-	Password    string `json:"-"`
-}
-
-// User represents internal user data
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
 // ChatService handles user management and message sending
 type ChatService struct {
 	users    map[string]ChatUser // Map of user IDs to users
@@ -48,7 +27,7 @@ func NewChatService() *ChatService {
 }
 
 // RegisterUser registers a new user in the chat application
-func (cs *ChatService) RegisterUser(id, name, displayName, password string) {
+func (cs *ChatService) RegisterUser(id, name, password string) {
 	cs.mu.Lock()
 	defer cs.mu.Unlock()
 
@@ -57,8 +36,8 @@ func (cs *ChatService) RegisterUser(id, name, displayName, password string) {
 			ID:   id,
 			Name: name,
 		},
-		DisplayName: displayName,
-		Password:    password,
+
+		Password: password,
 	}
 }
 
@@ -84,7 +63,7 @@ func (cs *ChatService) SendMessage(senderID, receiverID, message string) {
 	}
 
 	cs.messages = append(cs.messages, msg)
-	fmt.Printf("Message from %s to %s: %s\n", cs.users[senderID].DisplayName, cs.users[receiverID].DisplayName, message)
+	fmt.Printf("Message from %s to %s: %s\n", cs.users[senderID].InternData.Name, cs.users[receiverID].InternData.Name, message)
 }
 
 // GetMessagesForUser retrieves all messages sent to a specific user
@@ -123,7 +102,7 @@ func (cs *ChatService) GetMessagesHandler(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(messages)
 }
 
-func main() {
+func ChataPPmain() {
 	chatService := NewChatService()
 	r := mux.NewRouter()
 
@@ -132,8 +111,8 @@ func main() {
 	r.HandleFunc("/messages/{id}", chatService.GetMessagesHandler).Methods("GET")
 
 	// Example: Register some users
-	chatService.RegisterUser("1", "Jakub", "Jakub123", "password123")
-	chatService.RegisterUser("2", "Alice", "Alice456", "password456")
+	chatService.RegisterUser("1", "Jakub", "password123")
+	chatService.RegisterUser("2", "Alice", "password456")
 
 	port := "8080"
 	fmt.Printf("Server starting on port %s...\n", port)
