@@ -28,8 +28,72 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 	counter++
 	currentCount := counter
 	mu.Unlock()
-	fmt.Fprintf(w, "Hello, World!\n")
-	fmt.Fprintf(w, "This page has been accessed "+strconv.Itoa(currentCount)+" times!")
+
+	// HTML content
+	htmlContent := `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome to My Homepage</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f0f8ff;
+                color: #333;
+                text-align: center;
+                padding: 50px;
+            }
+            h1 {
+                color: #4CAF50;
+            }
+            .counter {
+                font-size: 24px;
+                margin: 20px 0;
+            }
+            .button {
+                background-color: #4CAF50;
+                border: none;
+                color: white;
+                padding: 15px 32px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+                cursor: pointer;
+                border-radius: 4px;
+                transition: background-color 0.3s;
+            }
+            .button:hover {
+                background-color: #45a049;
+            }
+            img.logo {
+                width: 300px;
+                border-radius: 8px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Welcome to My Homepage!</h1>
+        <p class="counter">This page has been accessed <strong>` + strconv.Itoa(currentCount) + `</strong> times!</p>
+        <p>
+			 <div>
+			 <a href="/" class="button">Refresh Page</a>
+                <a href="/register" class="button">Register</a>
+                <a href="/login" class="button">Login</a>
+				<a href="/info" class="button">Information</a>
+
+            </div>
+        </p>
+		<img src="https://i.imgur.com/p0pVfQB.jpg" alt="Logo" class="logo">
+    </body>
+    </html>
+    `
+
+	// Send the HTML response
+	fmt.Fprintf(w, htmlContent)
 }
 
 // RenderHTML serves a basic HTML form page
@@ -50,21 +114,86 @@ func RegisterPage(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		form := `
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Register</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
+                }
+                .container {
+                    background-color: white;
+                    padding: 30px;
+                    border-radius: 10px;
+                    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+                    width: 100%;
+                    max-width: 400px;
+                }
+                h1 {
+                    text-align: center;
+                    color: #333;
+                }
+                label {
+                    font-weight: bold;
+                    color: #333;
+                    display: block;
+                    margin-top: 10px;
+                }
+						img.logo {
+           			 width: 320px; /* Adjusted size */
+           			 margin-bottom: 20px;
+       				 }
+     	   	
+                input[type="text"], input[type="password"] {
+                    width: 100%;
+                    padding: 10px;
+                    margin: 10px 0;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    box-sizing: border-box;
+                }
+                input[type="submit"] {
+                    width: 100%;
+                    padding: 10px;
+                    background-color: #007BFF;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 16px;
+                    margin-top: 20px;
+                }
+                input[type="submit"]:hover {
+                    background-color: #0056b3;
+                }
+            </style>
         </head>
         <body>
-            <h1>Register</h1>
-            <form action="/restful/register" method="post">
-                <label for="id">ID:</label>
-                <input type="text" id="id" name="id" required><br><br>
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required><br><br>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required><br><br>
-                <input type="submit" value="Register">
-            </form>
+            <div class="container">
+				<img src="https://i.imgur.com/p0pVfQB.jpg" alt="Logo" class="logo">
+
+                <h1>Register</h1>
+                <form action="/restful/register" method="post">
+                    <label for="id">ID:</label>
+                    <input type="text" id="id" name="id" required>
+
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required>
+
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+
+                    <input type="submit" value="Register">
+                </form>
+            </div>
         </body>
         </html>`
 		w.Header().Set("Content-Type", "text/html")
@@ -98,26 +227,99 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/register", http.StatusSeeOther)
 }
 
-// LoginPage serves the user login page
+// Login Page with HTML
 func LoginPage(w http.ResponseWriter, r *http.Request) {
-	form := `
-	<!DOCTYPE html>
-	<html>
-	<head>
-		<title>Login</title>
-	</head>
-	<body>
-		<h1>Login</h1>
-		<form action="/restful/login" method="post">
-			<label for="username">Username:</label>
-			<input type="text" id="username" name="username" required><br><br>
-			<label for="password">Password:</label>
-			<input type="password" id="password" name="password" required><br><br>
-			<input type="submit" value="Login">
-		</form>
-	</body>
-	</html>`
-	RenderHTML(w, r, form)
+	if r.Method == http.MethodGet {
+		form := `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Login</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
+                }
+                .container {
+                    background-color: white;
+                    padding: 30px;
+                    border-radius: 10px;
+                    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+                    width: 100%;
+                    max-width: 400px;
+                }
+                h1 {
+                    text-align: center;
+                    color: #333;
+                }
+                label {
+                    font-weight: bold;
+                    color: #333;
+                    display: block;
+                    margin-top: 10px;
+                }
+					img.logo {
+            width: 320px; /* Adjusted size */
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+                input[type="text"], input[type="password"] {
+                    width: 100%;
+                    padding: 10px;
+                    margin: 10px 0;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    box-sizing: border-box;
+                }
+                input[type="submit"] {
+                    width: 100%;
+                    padding: 10px;
+                    background-color: #007BFF;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 16px;
+                    margin-top: 20px;
+                }
+                input[type="submit"]:hover {
+                    background-color: #0056b3;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+			<img src="https://i.imgur.com/p0pVfQB.jpg" alt="Logo" class="logo">
+
+                <h1>Login</h1>
+                <form action="/restful/login" method="post">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+
+                    <input type="submit" value="Login">
+                </form>
+            </div>
+        </body>
+        </html>`
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, form)
+	} else {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	}
 }
 
 // LoginUser handles user login
