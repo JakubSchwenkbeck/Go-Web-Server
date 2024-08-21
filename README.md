@@ -17,10 +17,3 @@ This project is a Go-based server application featuring a RESTful API, chat func
 - [MySQL](https://dev.mysql.com/downloads/mysql/) installed and running.
 - [Postman](https://www.postman.com/downloads/) for testing API endpoints (optional).
 
-## Installation
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/yourusername/your-repository.git
-   cd your-repository
