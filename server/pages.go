@@ -5,14 +5,23 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
+var ( // shared resource
+	counter int
+	mu      sync.Mutex
+	// Semaphore with a capacity of 5 for accesses
+	semaphore = make(chan struct{}, 5)
+)
+
 // HomePage serves the landing page of the server
 func HomePage(w http.ResponseWriter, r *http.Request) {
 	semaphore <- struct{}{}
+
 	defer func() { <-semaphore }() // Release semaphore slot
 
 	if r.URL.Path != "/" {
