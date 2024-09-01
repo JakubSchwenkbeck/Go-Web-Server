@@ -1,6 +1,6 @@
 # Go Server with RESTful API, Chat Functionality, and MySQL Integration
 
-This project is a Go-based server application featuring a RESTful API, chat functionality, and MySQL database integration. It demonstrates basic CRUD operations, user authentication, and messaging capabilities.
+This project is a Go-based server application featuring a RESTful API, chat functionality, and MySQL database integration. It demonstrates basic CRUD operations, user authentication, and messaging capabilities. Inline HTML and CSS Code styles the webpages served.
 
 ## Features
 
